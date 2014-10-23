@@ -8,23 +8,24 @@ HOST_IP = '192.168.56.65'
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = 'centos7'
+  config.vm.provider :virtualbox do |vb|
+    vb.gui = true
+
+  end
   config.vm.define HOST_NAME do |node|
     node.vm.hostname = "#{HOST_NAME}.#{DOMAIN}"
     node.vm.network :private_network,
       ip: HOST_IP,
       netmask: '255.255.255.0'
     node.vm.synced_folder 'html', '/var/www/html'
-    node.vm.synced_folder 'puppet', '/etc/puppet'
 
     node.vm.provider :virtualbox do |vb|
       vb.name = HOST_NAME
       vb.customize ['modifyvm', :id, '--memory', 256]
     end
 
-    node.vm.provision 'puppet' do |puppet|
-      puppet.manifests_path = 'puppet/manifests'
-      puppet.manifest_file = 'site.pp'
-      puppet.options = [ '--environment development' ]
+    node.vm.provision 'ansible' do |ansible|
+      ansible.playbook = 'ansible/test.yml'
     end
   end
 end
